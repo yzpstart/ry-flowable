@@ -61,12 +61,17 @@
 
     <el-table v-loading="loading" :data="myProcessList" border @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="流程编号" align="center" prop="procInsId" :show-overflow-tooltip="true"/>
+<!--      <el-table-column label="流程编号" align="center" prop="procInsId" :show-overflow-tooltip="true"/>-->
       <el-table-column label="流程名称" align="center" prop="procDefName" :show-overflow-tooltip="true"/>
-      <el-table-column label="流程类别" align="center" prop="category" width="100px" />
+<!--      <el-table-column label="流程类别" align="center" prop="category" width="100px" />-->
       <el-table-column label="流程版本" align="center" width="80px">
         <template slot-scope="scope">
           <el-tag size="medium" >v{{ scope.row.procDefVersion }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="流程发起人" align="center">
+        <template slot-scope="scope">
+          <label>{{scope.row.startUserName}} <el-tag type="info" size="mini">{{scope.row.startDeptName}}</el-tag></label>
         </template>
       </el-table-column>
       <el-table-column label="提交时间" align="center" prop="createTime" width="180"/>
@@ -77,7 +82,7 @@
         </template>
       </el-table-column>
       <el-table-column label="耗时" align="center" prop="duration" width="180"/>
-      <el-table-column label="当前节点" align="center" prop="taskName"/>
+      <el-table-column label="当前流程节点" align="center" prop="taskName" width="100"/>
       <el-table-column label="办理" align="center">
         <template slot-scope="scope">
           <label v-if="scope.row.assigneeName">{{scope.row.assigneeName}} <el-tag type="info" size="mini">{{scope.row.deptName}}</el-tag></label>
@@ -344,6 +349,7 @@ export default {
           procInsId: row.procInsId,
           deployId: row.deployId,
           taskId: row.taskId,
+          executionId: row.executionId,
           finished: false
       }})
     },

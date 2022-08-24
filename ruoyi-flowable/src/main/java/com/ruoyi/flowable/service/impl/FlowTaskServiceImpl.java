@@ -51,6 +51,7 @@ import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskQuery;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.task.api.history.HistoricTaskInstanceQuery;
+import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -415,6 +416,7 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
     public AjaxResult myProcess(Integer pageNum, Integer pageSize) {
         Page<FlowTaskDto> page = new Page<>();
         Long userId = SecurityUtils.getLoginUser().getUser().getUserId();
+        //历史流程实例信息
         HistoricProcessInstanceQuery historicProcessInstanceQuery = historyService.createHistoricProcessInstanceQuery()
                 .startedBy(userId.toString())
                 .orderByProcessInstanceStartTime()
@@ -427,7 +429,10 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
             flowTask.setCreateTime(hisIns.getStartTime());
             flowTask.setFinishTime(hisIns.getEndTime());
             flowTask.setProcInsId(hisIns.getId());
-
+            SysUser user = sysUserService.selectUserById(Long.parseLong(hisIns.getStartUserId()));
+            flowTask.setStartUserId(hisIns.getStartUserId());
+            flowTask.setStartUserName(user.getNickName());
+            flowTask.setStartDeptName(user.getDept().getDeptName());
             // 计算耗时
             if (Objects.nonNull(hisIns.getEndTime())) {
                 long time = hisIns.getEndTime().getTime() - hisIns.getStartTime().getTime();
@@ -446,13 +451,23 @@ public class FlowTaskServiceImpl extends FlowServiceFactory implements IFlowTask
             flowTask.setCategory(pd.getCategory());
             flowTask.setProcDefVersion(pd.getVersion());
             // 当前所处流程 todo: 本地启动放开以下注释
-//            List<Task> taskList = taskService.createTaskQuery().processInstanceId(hisIns.getId()).list();
-//            if (CollectionUtils.isNotEmpty(taskList)) {
-//                flowTask.setTaskId(taskList.get(0).getId());
-//            } else {
-//                List<HistoricTaskInstance> historicTaskInstance = historyService.createHistoricTaskInstanceQuery().processInstanceId(hisIns.getId()).orderByHistoricTaskInstanceEndTime().desc().list();
-//                flowTask.setTaskId(historicTaskInstance.get(0).getId());
-//            }
+            List<Task> taskList = taskService.createTaskQuery().processInstanceId(hisIns.getId()).list();
+            if (CollectionUtils.isNotEmpty(taskList)) {
+                flowTask.setTaskId(taskList.get(0).getId());
+                flowTask.setExecutionId(taskList.get(0).getExecutionId());
+                //拿到名称
+                //查询部门deptName
+                SysUser sysUser = sysUserService.selectUserById(Long.parseLong(taskList.get(0).getAssignee()));
+                flowTask.setAssigneeName(sysUser.getUserName());
+                flowTask.setDeptName(sysUser.getDept().getDeptName());
+
+                flowTask.setTaskName(taskList.get(0).getName());
+            } else {
+                List<HistoricTaskInstance> historicTaskInstance = historyService.createHistoricTaskInstanceQuery().processInstanceId(hisIns.getId()).orderByHistoricTaskInstanceEndTime().desc().list();
+                flowTask.setTaskId(historicTaskInstance.get(0).getId());
+//                flowTask.setAssigneeName(historicTaskInstance.get(0).getAssignee());
+//                flowTask.setTaskName(historicTaskInstance.get(0).getName());
+            }
             flowList.add(flowTask);
         }
         page.setRecords(flowList);

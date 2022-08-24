@@ -250,6 +250,7 @@ export default {
         deployId: "",  // 流程定义编号
         taskId: "" ,// 流程任务编号
         procDefId: "",  // 流程编号
+        executionId: "",// 流程任务执行编号
         vars: "",
         targetKey:""
       },
