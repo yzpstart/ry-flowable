@@ -209,6 +209,7 @@ export default {
           procInsId: row.procInsId,
           deployId: row.deployId,
           taskId: row.taskId,
+          executionId: row.executionId,
           finished: false
       }})
     },
